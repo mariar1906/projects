@@ -1,0 +1,74 @@
+Extracting ESG data
+
+!pip install -q -U google-generativeai
+import pathlib
+import textwrap
+import google.generativeai as genai
+
+# Used to securely store your API key
+genai.configure(api_key='') 
+
+model = genai.GenerativeModel('gemini-1.5-pro-002')
+sample_pdf = genai.upload_file("/content/20240515_Alstom_Universal_Registration_Document_EN.pdf")
+
+def extract_info(text):
+    info_dict = {}
+    lines = text.split('\n')
+
+    for line in lines:
+        if line.startswith('**'):
+            # Remove leading/trailing '**' and split by ':', stripping excess whitespace
+            key, value = line.strip('**').strip().split(':', 1)
+            # Remove leading/trailing whitespace and '**' from the value
+            value = value.strip('**').strip()
+            info_dict[key.strip()] = value
+
+    return info_dict
+
+def extraer_info_empresa(modelo, pdf_path):
+
+  prompt = ["retrieve company name, activities, sector, location from this pdf", pdf_path]
+  response = modelo.generate_content(prompt)
+  info_empresa = response.text
+
+  return info_empresa
+
+def environmental_info_empresa(modelo, pdf_path):
+
+  prompt2 = ["retrieve information about: energy intensity, greenhouse gases emission, water management, waste management, raw material sourcing, climate change, air pollution,pollution and biodiversity. If there is no information just say no info", pdf_path]
+  response2 = modelo.generate_content(prompt2)
+  environmental_info_empresa = response2.text
+
+  return environmental_info_empresa
+
+def social_info_empresa(modelo, pdf_path):
+
+  prompt3 = ["retrieve information about: human resources, health and safety, diversity and inclusion, labor management, data privacy and security,community relations and employee engagement. If there is no information just say no info", pdf_path]
+  response3 = modelo.generate_content(prompt3)
+  social_info_empresa = response3.text
+
+  return social_info_empresa
+
+def governance_info_empresa(modelo, pdf_path):
+
+  prompt4 = ["retrieve information about: company's leadership, board of directors, materiality issues, business ethics, professional integrity, remuneration policy, supply chain, whistleblower policy, stakeholder engagement, esg reporting. If there is no information just say no info", pdf_path]
+  response4 = modelo.generate_content(prompt4)
+  governance_info_empresa = response4.text
+
+  return governance_info_empresa
+
+resp_info = extraer_info_empresa(model,sample_pdf)
+info =extract_info(resp_info)
+info
+
+resp_infoenv = environmental_info_empresa(model,sample_pdf)
+infoenv =extract_info(resp_infoenv)
+infoenv
+
+resp_infosoc = social_info_empresa(model,sample_pdf)
+infosoc =extract_info(resp_infosoc)
+infosoc
+
+resp_infogov =governance_info_empresa(model,sample_pdf)
+infogov =extract_info(resp_infogov)
+infogov
